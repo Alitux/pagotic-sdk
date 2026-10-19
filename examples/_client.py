@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 
 from pagotic import PagoTIC
 
-load_dotenv()
+load_dotenv(override=True)
 
 
 def build_client() -> PagoTIC:

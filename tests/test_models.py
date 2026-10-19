@@ -88,3 +88,32 @@ def test_distribution_model_roundtrip() -> None:
     restored = Distribution.model_validate(distribution.model_dump(mode="json"))
 
     assert restored == distribution
+
+
+def test_payment_raw_qr_from_payment_methods() -> None:
+    payment = Payment.model_validate(
+        {
+            "id": "pay-1",
+            "payment_methods": [{"media_payment_id": 85, "raw_qr": "000201010212"}],
+        }
+    )
+
+    assert payment.raw_qr == "000201010212"
+
+
+def test_payment_raw_qr_prefers_top_level_value() -> None:
+    payment = Payment.model_validate(
+        {
+            "id": "pay-1",
+            "raw_qr": "top-level",
+            "payment_methods": [{"raw_qr": "anidado"}],
+        }
+    )
+
+    assert payment.raw_qr == "top-level"
+
+
+def test_payment_raw_qr_is_none_without_qr() -> None:
+    payment = Payment.model_validate({"id": "pay-1"})
+
+    assert payment.raw_qr is None

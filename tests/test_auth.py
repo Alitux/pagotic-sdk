@@ -154,6 +154,57 @@ def test_credentials_from_environment(monkeypatch) -> None:
         sdk.close()
 
 
+def test_credentials_are_trimmed(monkeypatch) -> None:
+    monkeypatch.setenv("PAGOTIC_USERNAME", "  env-user  ")
+    monkeypatch.setenv("PAGOTIC_PASSWORD", "\tenv-pass\n")
+    monkeypatch.setenv("PAGOTIC_CLIENT_ID", " env-id ")
+    monkeypatch.setenv("PAGOTIC_CLIENT_SECRET", " env-secret ")
+
+    sdk = PagoTIC()
+    try:
+        assert sdk.settings.username == "env-user"
+        assert sdk.settings.password == "env-pass"
+        assert sdk.settings.client_id == "env-id"
+        assert sdk.settings.client_secret == "env-secret"
+    finally:
+        sdk.close()
+
+
+def test_whitespace_only_credentials_are_missing(monkeypatch) -> None:
+    for name in (
+        "PAGOTIC_USERNAME",
+        "PAGOTIC_PASSWORD",
+        "PAGOTIC_CLIENT_ID",
+        "PAGOTIC_CLIENT_SECRET",
+    ):
+        monkeypatch.setenv(name, "   ")
+
+    with pytest.raises(PagoTICConfigError):
+        PagoTIC()
+
+
+def test_token_request_sends_trimmed_credentials(mock_router) -> None:
+    token_route = mock_token(mock_router)
+    mock_json(mock_router, "GET", "/pagos/pay-1", PAYMENT_JSON)
+
+    with PagoTIC(
+        " user ",
+        " pass ",
+        " client ",
+        " secret ",
+        max_retries=0,
+        retry_backoff=0,
+        token_leeway=0,
+    ) as sdk:
+        sdk.payments.get("pay-1")
+
+    form = parse_qs(token_route.calls.last.request.content.decode())
+    assert form["username"] == ["user"]
+    assert form["password"] == ["pass"]
+    assert form["client_id"] == ["client"]
+    assert form["client_secret"] == ["secret"]
+
+
 def test_invalid_configuration() -> None:
     with pytest.raises(PagoTICConfigError):
         PagoTIC(

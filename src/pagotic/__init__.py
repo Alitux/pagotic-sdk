@@ -10,6 +10,7 @@ from pagotic.enums import (
     FilterOperation,
     IdentificationType,
     ImportStatus,
+    MediaPayment,
     PaymentStatus,
     PaymentType,
     Recurrence,
@@ -64,10 +65,17 @@ from pagotic.models import (
     SubscriptionSearchRequest,
     validate_model,
 )
-from pagotic.utils import format_filter_datetime, format_import_datetime
+from pagotic.qr import render_qr_png, render_qr_svg, save_qr
+from pagotic.utils import (
+    QR_IMAGE_ENDPOINT,
+    build_qr_image_url,
+    format_filter_datetime,
+    format_import_datetime,
+)
 from pagotic.webhooks import parse_notification
 
 __all__ = [
+    "QR_IMAGE_ENDPOINT",
     "Amount",
     "AsyncPagoTIC",
     "Carrier",
@@ -91,6 +99,7 @@ __all__ = [
     "ImportStatus",
     "ImportSummary",
     "ListResponse",
+    "MediaPayment",
     "Pagination",
     "PagoTIC",
     "PagoTICAPIError",
@@ -126,8 +135,12 @@ __all__ = [
     "SubscriptionRequest",
     "SubscriptionSearchRequest",
     "__version__",
+    "build_qr_image_url",
     "format_filter_datetime",
     "format_import_datetime",
     "parse_notification",
+    "render_qr_png",
+    "render_qr_svg",
+    "save_qr",
     "validate_model",
 ]

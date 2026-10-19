@@ -27,6 +27,9 @@ dependencies = [
   "pydantic>=2.7,<3.0",
 ]
 
+[project.optional-dependencies]
+qr = ["segno>=1.6,<2.0"]
+
 [tool.poetry]
 packages = [{ include = "pagotic", from = "src" }]
 
@@ -38,6 +41,7 @@ pytest-cov = ">=6.0"
 python-dotenv = ">=1.0"
 respx = ">=0.22"
 ruff = ">=0.9"
+segno = ">=1.6,<2.0"
 
 [build-system]
 requires = ["poetry-core>=2.0"]

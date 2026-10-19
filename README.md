@@ -20,10 +20,17 @@ masiva, suscripciones y utilidades para webhooks.
 pip install pagotic-sdk
 ```
 
+Para generar códigos QR localmente (sin servicios externos) instalá el extra:
+
+```bash
+pip install "pagotic-sdk[qr]"
+```
+
 Con Poetry:
 
 ```bash
 poetry add pagotic-sdk
+poetry add "pagotic-sdk[qr]"  # opcional, para QR local
 ```
 
 > El paquete todavía no está publicado en PyPI. Mientras tanto:
@@ -85,6 +92,11 @@ Las credenciales se pueden pasar al constructor o definir por entorno:
 | `PAGOTIC_MAX_RETRIES` | Reintentos en GET/HEAD (default: `2`) |
 | `PAGOTIC_RETRY_BACKOFF` | Base del backoff exponencial (default: `0.25`) |
 | `PAGOTIC_TOKEN_LEEWAY` | Margen de renovación del token (default: `30`) |
+
+Las credenciales y URLs se normalizan automáticamente: se ignoran los espacios
+al inicio y al final, y un valor con solo espacios se considera ausente. En los
+ejemplos y tests de integración el `.env` se carga con `override=True` para que
+variables del sistema (por ejemplo `USERNAME`) no pisen las credenciales.
 
 ```python
 from pagotic import PagoTIC
@@ -152,6 +164,67 @@ sdk.payments.cancel_group(grouped.id, "Cancelación de la agrupación")
 coupon = sdk.payments.create_coupon(payment, media_payment_id=97)  # 97 Rapipago, 98 Pago Fácil
 print(coupon.payment_methods[0].coupon_number)
 ```
+
+### Medios de pago y presets
+
+`MediaPayment` enumera los `media_payment_id` documentados. Podés combinar
+tarjetas de crédito, débito y QR en el checkout con `presets`:
+
+```python
+from pagotic import MediaPayment, PaymentRequest, Presets
+
+payment = sdk.payments.create(
+    PaymentRequest(
+        external_transaction_id="orden-125",
+        currency_id="ARS",
+        details=[{"external_reference": "a", "amount": 1500}],
+        payer={"name": "Ana Pérez", "email": "ana@example.com"},
+        presets=Presets(
+            media_payment_ids=[
+                *MediaPayment.cards(),  # crédito + débito
+                MediaPayment.QR,
+            ]
+        ),
+    )
+)
+print(payment.form_url)  # checkout filtrado a esos medios
+```
+
+`presets` solo filtra las opciones del checkout: no cobra en el momento. Para
+habilitar el QR interoperable usá `MediaPayment.QR` (85). También podés agrupar
+por tipo: `MediaPayment.credit_cards()`, `MediaPayment.debit_cards()`,
+`MediaPayment.cards()` y `MediaPayment.coupons()`.
+
+Cuando se cobra directo con tarjeta (`type="online"` + `payment_methods`), el
+QR no participa del flujo. Los IDs deben estar habilitados para el comercio.
+
+### QR
+
+El pago se crea con QR como medio (por ejemplo, `presets` con
+`MediaPayment.QR`). Una vez creado, `raw_qr` aparece en `payment_methods[]` al
+consultar `sdk.payments.get(id)` o en el webhook:
+
+```python
+from pagotic import save_qr
+
+payment = sdk.payments.get(payment_id)
+if payment.raw_qr:
+    path = save_qr(payment.raw_qr, "qr.png", scale=6)
+    print(f"QR guardado en {path}")
+```
+
+El QR se genera localmente con [`segno`](https://pypi.org/project/segno/) (Python
+puro, sin Pillow ni servicios externos). Para eso instalá el extra:
+
+```bash
+pip install "pagotic-sdk[qr]"
+```
+
+También están `render_qr_png` y `render_qr_svg` para obtener los bytes o el SVG
+en memoria. Si preferís delegar la imagen a un servicio externo, seguí usando
+`build_qr_image_url`.
+
+Cada QR es de un solo uso: una vez pagado queda invalidado.
 
 ## Distribución programada
 

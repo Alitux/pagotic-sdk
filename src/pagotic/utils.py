@@ -1,8 +1,13 @@
-"""Helpers de fechas para filtros de la API."""
+"""Helpers de fechas para filtros de la API y de códigos QR."""
 
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
+from urllib.parse import quote
+
+from pagotic.exceptions import PagoTICValidationError
+
+QR_IMAGE_ENDPOINT = "https://api.qrserver.com/v1/create-qr-code/"
 
 
 def format_filter_datetime(value: datetime | date | str) -> str:
@@ -32,3 +37,16 @@ def format_import_datetime(value: datetime | date | str) -> str:
             current = current.replace(tzinfo=timezone.utc)
         return f"{current:%Y%m%dT%H%M%S}{current:%z}"
     return f"{value:%Y%m%d}T000000-0000"
+
+
+def build_qr_image_url(raw_qr: str, size: int = 200) -> str:
+    """Arma la URL de la imagen QR a partir del ``raw_qr`` de un pago.
+
+    El valor se URL-encodea, tal como indica la guía oficial de PagoTIC. La
+    imagen se obtiene haciendo ``GET`` a la URL resultante.
+    """
+    if not raw_qr:
+        raise PagoTICValidationError("raw_qr no puede estar vacío")
+    if size <= 0:
+        raise PagoTICValidationError("size debe ser mayor a cero")
+    return f"{QR_IMAGE_ENDPOINT}?size={size}x{size}&data={quote(raw_qr, safe='')}"

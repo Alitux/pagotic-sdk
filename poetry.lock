@@ -1181,6 +1181,19 @@ files = [
 ]
 
 [[package]]
+name = "segno"
+version = "1.6.6"
+description = "QR Code and Micro QR Code generator for Python"
+optional = false
+python-versions = ">=3.5"
+groups = ["main", "dev"]
+files = [
+    {file = "segno-1.6.6-py3-none-any.whl", hash = "sha256:28c7d081ed0cf935e0411293a465efd4d500704072cdb039778a2ab8736190c7"},
+    {file = "segno-1.6.6.tar.gz", hash = "sha256:e60933afc4b52137d323a4434c8340e0ce1e58cec71439e46680d4db188f11b3"},
+]
+markers = {main = "extra == \"qr\""}
+
+[[package]]
 name = "tomli"
 version = "2.5.0"
 description = "A lil' TOML parser"
@@ -1303,7 +1316,10 @@ platformdirs = ">=4.4,<5"
 python-discovery = ">=1.6.1"
 typing-extensions = {version = ">=4.16", markers = "python_version < \"3.11\""}
 
+[extras]
+qr = ["segno"]
+
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10"
-content-hash = "26a857ce879eefe8283cfb4e5e9f76706ee76986784d7d59f59aef0e4965efde"
+content-hash = "3ef011c15d6ee3e6a948291f9ec6ab43a7567d284840ead26c07760a14362ce3"

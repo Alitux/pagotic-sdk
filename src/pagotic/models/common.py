@@ -96,6 +96,7 @@ class PaymentMethodInfo(PagoTICModel):
     payment_method_id: int | str | None = None
     gateway: Gateway | None = None
     coupon_number: str | None = None
+    raw_qr: str | None = None
     first_six_digits: str | None = None
     last_four_digits: str | None = None
     installments: int | None = None

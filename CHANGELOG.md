@@ -7,6 +7,25 @@ y el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Added
+
+- Enum `MediaPayment` con todos los `media_payment_id` documentados y helpers
+  `credit_cards()`, `debit_cards()`, `cards()` y `coupons()`.
+- Campo tipado `PaymentMethodInfo.raw_qr` y propiedad `Payment.raw_qr` para
+  obtener el código QR del pago.
+- Helper `build_qr_image_url` y constante `QR_IMAGE_ENDPOINT` para generar la
+  imagen del QR.
+- Ejemplo `examples/qr_payment.py` y sección de medios de pago/QR en el README.
+- Generación local de QR con `segno` (extra `pagotic-sdk[qr]`):
+  `render_qr_png`, `render_qr_svg` y `save_qr`.
+
+### Fixed
+
+- Las credenciales y URLs se normalizan quitando espacios al inicio y al final;
+  un valor con solo espacios se considera ausente.
+- Los ejemplos y tests de integración cargan `.env` con `override=True` para que
+  variables del sistema como `USERNAME` no pisen las credenciales del archivo.
+
 ## [0.1.0] - 2026-10-19
 
 ### Added

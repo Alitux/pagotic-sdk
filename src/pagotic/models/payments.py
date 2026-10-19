@@ -173,6 +173,22 @@ class Payment(PagoTICModel):
     relateds: list[RelatedPayment] = Field(default_factory=list)
     distribution: Distribution | None = None
 
+    @property
+    def raw_qr(self) -> str | None:
+        """Primer ``raw_qr`` disponible del pago.
+
+        La API lo devuelve dentro de ``payment_methods[]`` (o a nivel raíz en
+        las notificaciones). Devuelve ``None`` si el pago no tiene un QR.
+        """
+        extra = self.model_extra or {}
+        top_level = extra.get("raw_qr")
+        if isinstance(top_level, str) and top_level:
+            return top_level
+        for method in self.payment_methods:
+            if method.raw_qr:
+                return method.raw_qr
+        return None
+
 
 class PaymentSearchRequest(PagoTICModel):
     """Cuerpo de ``POST /pagos/busqueda`` (búsqueda legacy)."""

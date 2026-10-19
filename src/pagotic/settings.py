@@ -32,6 +32,16 @@ class Settings:
     retry_backoff: float = DEFAULT_RETRY_BACKOFF
     token_leeway: float = DEFAULT_TOKEN_LEEWAY
 
+    def __post_init__(self) -> None:
+        """Normaliza credenciales y URLs (sin espacios al inicio ni al final)."""
+        object.__setattr__(self, "username", self.username.strip())
+        object.__setattr__(self, "password", self.password.strip())
+        object.__setattr__(self, "client_id", self.client_id.strip())
+        object.__setattr__(self, "client_secret", self.client_secret.strip())
+        object.__setattr__(self, "auth_url", self.auth_url.strip())
+        object.__setattr__(self, "api_url", self.api_url.strip())
+        object.__setattr__(self, "realm", self.realm.strip())
+
     @property
     def token_url(self) -> str:
         """URL completa del endpoint de tokens de Keycloak."""
@@ -43,6 +53,14 @@ def _pick(explicit: str | None, env_name: str) -> str | None:
     if explicit is not None:
         return explicit
     return os.environ.get(env_name)
+
+
+def _clean(value: str | None) -> str | None:
+    """Quita espacios al inicio/fin y trata un valor vacío como ausente."""
+    if value is None:
+        return None
+    cleaned = value.strip()
+    return cleaned or None
 
 
 def resolve_settings(
@@ -60,10 +78,10 @@ def resolve_settings(
     token_leeway: float | None = None,
 ) -> Settings:
     """Resuelve la configuración desde argumentos y variables ``PAGOTIC_*``."""
-    resolved_username = _pick(username, "PAGOTIC_USERNAME")
-    resolved_password = _pick(password, "PAGOTIC_PASSWORD")
-    resolved_client_id = _pick(client_id, "PAGOTIC_CLIENT_ID")
-    resolved_client_secret = _pick(client_secret, "PAGOTIC_CLIENT_SECRET")
+    resolved_username = _clean(_pick(username, "PAGOTIC_USERNAME"))
+    resolved_password = _clean(_pick(password, "PAGOTIC_PASSWORD"))
+    resolved_client_id = _clean(_pick(client_id, "PAGOTIC_CLIENT_ID"))
+    resolved_client_secret = _clean(_pick(client_secret, "PAGOTIC_CLIENT_SECRET"))
 
     missing = [
         name
@@ -111,9 +129,11 @@ def resolve_settings(
         password=resolved_password or "",
         client_id=resolved_client_id or "",
         client_secret=resolved_client_secret or "",
-        auth_url=auth_url or os.environ.get("PAGOTIC_AUTH_URL", DEFAULT_AUTH_URL),
-        api_url=api_url or os.environ.get("PAGOTIC_API_URL", DEFAULT_API_URL),
-        realm=realm or os.environ.get("PAGOTIC_REALM", DEFAULT_REALM),
+        auth_url=(
+            _clean(auth_url) or _clean(os.environ.get("PAGOTIC_AUTH_URL")) or DEFAULT_AUTH_URL
+        ),
+        api_url=(_clean(api_url) or _clean(os.environ.get("PAGOTIC_API_URL")) or DEFAULT_API_URL),
+        realm=(_clean(realm) or _clean(os.environ.get("PAGOTIC_REALM")) or DEFAULT_REALM),
         timeout=resolved_timeout,
         max_retries=resolved_max_retries,
         retry_backoff=resolved_backoff,
