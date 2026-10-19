@@ -1,4 +1,4 @@
-.PHONY: install lint format typecheck test test-cov build clean
+.PHONY: install lint format typecheck test test-cov build docs docs-build clean
 
 install:
 	poetry install
@@ -23,5 +23,11 @@ test-cov:
 build:
 	poetry build
 
+docs:
+	poetry run mkdocs serve
+
+docs-build:
+	poetry run mkdocs build --strict
+
 clean:
-	rm -rf build dist htmlcov .coverage coverage.xml .pytest_cache .ruff_cache .mypy_cache
+	rm -rf build dist site htmlcov .coverage coverage.xml .pytest_cache .ruff_cache .mypy_cache

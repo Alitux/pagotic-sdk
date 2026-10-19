@@ -14,6 +14,9 @@ masiva, suscripciones y utilidades para webhooks.
 - Tipado completo (`py.typed`)
 - Tests con `respx`, lint con `ruff`, chequeo de tipos con `mypy`
 
+[![Documentación](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://alitux.github.io/pagotic-sdk/)
+📚 Documentación completa: **https://alitux.github.io/pagotic-sdk/**
+
 ## Instalación
 
 ```bash
@@ -233,10 +236,19 @@ Cada QR es de un solo uso: una vez pagado queda invalidado.
 
 ## Distribución programada
 
-Al crear un pago se puede repartir el monto entre varias cuentas CBU:
+Permite repartir el importe del pago entre varias cuentas CBU. Cada destinatario
+se describe con:
+
+| Campo | Obligatorio | Descripción |
+|---|---|---|
+| `type` | No | Tipo de transferencia. Documentado: `scheduled`. |
+| `cuit` | Sí | CUIT del titular. Se valida y normaliza. |
+| `cbu` | Sí | CBU de la cuenta destino. |
+| `name` | Sí | Nombre y apellido del titular. |
+| `amount` | Sí | Importe a transferir. Debe ser mayor que cero. |
 
 ```python
-from pagotic import Distribution, PaymentRequest
+from pagotic import Distribution, DistributionTransfer, PaymentRequest
 
 payment = sdk.payments.create(
     PaymentRequest(
@@ -249,27 +261,61 @@ payment = sdk.payments.create(
         payer={"name": "Ana Pérez", "email": "ana@example.com"},
         distribution=Distribution.scheduled(
             [
-                {
-                    "cbu": "0000000000000000000000",
-                    "cuit": "20123456789",
-                    "name": "Proveedor A",
-                    "amount": 800,
-                },
-                {
-                    "cbu": "1111111111111111111111",
-                    "cuit": "20987654321",
-                    "name": "Proveedor B",
-                    "amount": 200,
-                },
+                DistributionTransfer(
+                    cbu="0000000000000000000000",
+                    cuit="20-12345678-6",
+                    name="Proveedor A",
+                    amount=800,
+                ),
+                DistributionTransfer(
+                    cbu="1111111111111111111111",
+                    cuit="20-98765432-6",
+                    name="Proveedor B",
+                    amount=200,
+                ),
             ]
         ),
     )
 )
 ```
 
-**Validación obligatoria:** la suma de `distribution.details[].amount` debe ser
-exactamente igual a la suma de `details[].amount`. Si no coincide, el SDK lanza
-`PagoTICValidationError` y no envía la request.
+También acepta diccionarios:
+
+```python
+distribution = Distribution.scheduled(
+    [
+        {
+            "cbu": "0000000000000000000000",
+            "cuit": "20123456786",
+            "name": "Proveedor A",
+            "amount": 800,
+        },
+        {
+            "cbu": "1111111111111111111111",
+            "cuit": "20987654326",
+            "name": "Proveedor B",
+            "amount": 200,
+        },
+    ]
+)
+```
+
+El CUIT puede enviarse con guiones, puntos o espacios: se normaliza a 11
+dígitos y se valida el dígito verificador (módulo 11). Un CUIT inválido lanza
+`PagoTICValidationError`.
+
+**Validaciones obligatorias:**
+
+- La suma de `distribution.details[].amount` debe ser exactamente igual a la
+  suma de `details[].amount`.
+- Cada importe debe ser mayor que cero.
+- Debe haber al menos un destinatario.
+- El CUIT debe ser válido.
+
+Si alguna falla, el SDK lanza `PagoTICValidationError` y no envía la request.
+`distribution.total` devuelve la suma de los importes como `Decimal`.
+
+Más detalles en la [guía de distribución](https://alitux.github.io/pagotic-sdk/distribucion/).
 
 ## Importación masiva
 
@@ -367,6 +413,17 @@ from pagotic import AsyncPagoTIC
 async with AsyncPagoTIC() as sdk:
     payment = await sdk.payments.create({...})
     await sdk.payments.cancel(payment.id, "Cancelado")
+```
+
+## Documentación
+
+La documentación completa está en **https://alitux.github.io/pagotic-sdk/**.
+
+Para generarla localmente:
+
+```bash
+make docs        # servidor local en http://127.0.0.1:8000
+make docs-build  # build estricto en site/
 ```
 
 ## Desarrollo

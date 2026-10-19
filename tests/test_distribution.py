@@ -9,6 +9,7 @@ from pagotic import (
     Detail,
     Distribution,
     DistributionDetail,
+    DistributionTransfer,
     PagoTICValidationError,
     Payer,
     Payment,
@@ -36,13 +37,13 @@ def test_distribution_scheduled_serialization() -> None:
             [
                 {
                     "cbu": "0000000000000000000001",
-                    "cuit": "20111111111",
+                    "cuit": "20111111112",
                     "name": "A",
                     "amount": 800,
                 },
                 {
                     "cbu": "0000000000000000000002",
-                    "cuit": "20222222222",
+                    "cuit": "20222222223",
                     "name": "B",
                     "amount": 200,
                 },
@@ -60,7 +61,7 @@ def test_distribution_scheduled_serialization() -> None:
                 "destination": {
                     "type": "cbu",
                     "value": "0000000000000000000001",
-                    "cuit": "20111111111",
+                    "cuit": "20111111112",
                     "name": "A",
                 },
             },
@@ -70,7 +71,7 @@ def test_distribution_scheduled_serialization() -> None:
                 "destination": {
                     "type": "cbu",
                     "value": "0000000000000000000002",
-                    "cuit": "20222222222",
+                    "cuit": "20222222223",
                     "name": "B",
                 },
             },
@@ -84,19 +85,19 @@ def test_distribution_accepts_detail_objects() -> None:
         destination={
             "type": "cbu",
             "value": "0000000000000000000003",
-            "cuit": "20333333333",
+            "cuit": "20333333334",
             "name": "C",
         },
     )
     request = _request(Distribution.scheduled([detail]))
 
     assert request.distribution is not None
-    assert request.distribution.details[0].destination.cuit == "20333333333"
+    assert request.distribution.details[0].destination.cuit == "20333333334"
 
 
 def test_distribution_scheduled_missing_key() -> None:
-    with pytest.raises(PagoTICValidationError, match="falta la clave"):
-        Distribution.scheduled([{"cbu": "000", "cuit": "20111111111", "name": "A"}])
+    with pytest.raises(PagoTICValidationError, match="Transferencia inválida"):
+        Distribution.scheduled([{"cbu": "000", "cuit": "20111111112", "name": "A"}])
 
 
 def test_distribution_sum_mismatch_raises_on_model() -> None:
@@ -106,7 +107,7 @@ def test_distribution_sum_mismatch_raises_on_model() -> None:
                 [
                     {
                         "cbu": "0000000000000000000001",
-                        "cuit": "20111111111",
+                        "cuit": "20111111112",
                         "name": "A",
                         "amount": 900,
                     }
@@ -126,7 +127,7 @@ def test_distribution_sum_mismatch_raises_before_request(client) -> None:
                     "destination": {
                         "type": "cbu",
                         "value": "0000000000000000000001",
-                        "cuit": "20111111111",
+                        "cuit": "20111111112",
                         "name": "A",
                     },
                 }
@@ -155,7 +156,7 @@ def test_distribution_is_sent_to_api(client, mock_router) -> None:
                         "destination": {
                             "type": "cbu",
                             "value": "0000000000000000000001",
-                            "cuit": "20111111111",
+                            "cuit": "20111111112",
                             "name": "A",
                         },
                     }
@@ -175,7 +176,7 @@ def test_distribution_is_sent_to_api(client, mock_router) -> None:
                         "destination": {
                             "type": "cbu",
                             "value": "0000000000000000000001",
-                            "cuit": "20111111111",
+                            "cuit": "20111111112",
                             "name": "A",
                         },
                     }
@@ -212,3 +213,57 @@ def test_payment_response_parses_distribution() -> None:
 
     assert isinstance(payment.distribution, Distribution)
     assert payment.distribution.details[0].amount == 500
+
+
+def test_distribution_accepts_transfer_objects() -> None:
+    transfer = DistributionTransfer(
+        cuit="20-11111111-2",
+        cbu="0000000000000000000004",
+        name="D",
+        amount=1000,
+    )
+    request = _request(Distribution.scheduled([transfer]))
+
+    assert request.distribution is not None
+    assert request.distribution.details[0].destination.cuit == "20111111112"
+    assert request.distribution.details[0].destination.value == "0000000000000000000004"
+    assert request.distribution.total == 1000
+
+
+def test_distribution_transfer_rejects_non_positive_amount() -> None:
+    with pytest.raises(PagoTICValidationError, match="Transferencia inválida"):
+        Distribution.scheduled(
+            [
+                {
+                    "cbu": "0000000000000000000004",
+                    "cuit": "20111111112",
+                    "name": "D",
+                    "amount": 0,
+                }
+            ]
+        )
+
+
+def test_distribution_rejects_invalid_cuit() -> None:
+    with pytest.raises(PagoTICValidationError, match="dígito verificador"):
+        Distribution.scheduled(
+            [
+                {
+                    "cbu": "0000000000000000000004",
+                    "cuit": "20111111111",
+                    "name": "D",
+                    "amount": 100,
+                }
+            ]
+        )
+
+
+def test_distribution_total_sums_amounts() -> None:
+    distribution = Distribution.scheduled(
+        [
+            {"cbu": "1", "cuit": "20111111112", "name": "A", "amount": 800},
+            {"cbu": "2", "cuit": "20222222223", "name": "B", "amount": 200},
+        ]
+    )
+
+    assert distribution.total == 1000

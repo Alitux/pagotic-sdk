@@ -6,7 +6,7 @@ from collections.abc import Iterable, Mapping
 from decimal import Decimal
 from typing import Any
 
-from pydantic import Field, model_validator
+from pydantic import Field, ValidationError, model_validator
 
 from pagotic.enums import (
     DestinationType,
@@ -32,6 +32,7 @@ from pagotic.models.common import (
     RelatedPayment,
     Source,
 )
+from pagotic.validators import Cuit
 
 
 class DistributionDestination(PagoTICModel):
@@ -39,7 +40,7 @@ class DistributionDestination(PagoTICModel):
 
     type: DestinationType | str = DestinationType.CBU
     value: str
-    cuit: str
+    cuit: Cuit
     name: str
 
 
@@ -47,8 +48,35 @@ class DistributionDetail(PagoTICModel):
     """Transferencia programada hacia un destino."""
 
     type: DistributionType | str = DistributionType.SCHEDULED
-    amount: Amount
+    amount: Amount = Field(gt=0)
     destination: DistributionDestination
+
+
+class DistributionTransfer(PagoTICModel):
+    """Destinatario de una transferencia programada.
+
+    Reúne los datos que pide PagoTIC para cada destinatario: tipo de
+    transferencia, CUIT y CBU de la cuenta, nombre del titular y monto.
+    """
+
+    type: DistributionType | str = DistributionType.SCHEDULED
+    cuit: Cuit
+    cbu: str = Field(min_length=1)
+    name: str = Field(min_length=1)
+    amount: Amount = Field(gt=0)
+
+    def to_detail(self) -> DistributionDetail:
+        """Convierte la transferencia al formato anidado que espera la API."""
+        return DistributionDetail(
+            type=self.type,
+            amount=self.amount,
+            destination=DistributionDestination(
+                type=DestinationType.CBU,
+                value=self.cbu,
+                cuit=self.cuit,
+                name=self.name,
+            ),
+        )
 
 
 class Distribution(PagoTICModel):
@@ -56,40 +84,40 @@ class Distribution(PagoTICModel):
 
     details: list[DistributionDetail] = Field(min_length=1)
 
+    @property
+    def total(self) -> Decimal:
+        """Suma de los importes de todas las transferencias."""
+        return sum((detail.amount for detail in self.details), Decimal("0"))
+
     @classmethod
     def scheduled(
         cls,
-        transfers: Iterable[Mapping[str, Any] | DistributionDetail],
+        transfers: Iterable[DistributionTransfer | DistributionDetail | Mapping[str, Any]],
     ) -> Distribution:
         """Atajo para armar una distribución ``scheduled`` a cuentas CBU.
 
-        Cada transferencia puede ser un :class:`DistributionDetail` o un mapping
-        con las claves ``cbu``, ``cuit``, ``name`` y ``amount``.
+        Cada transferencia puede ser un :class:`DistributionTransfer`, un
+        :class:`DistributionDetail` o un mapping con las claves ``cbu``,
+        ``cuit``, ``name`` y ``amount``.
         """
         details: list[DistributionDetail] = []
         for transfer in transfers:
             if isinstance(transfer, DistributionDetail):
                 details.append(transfer)
                 continue
+            if isinstance(transfer, DistributionTransfer):
+                details.append(transfer.to_detail())
+                continue
             try:
-                amount = transfer["amount"]
-                cbu = transfer["cbu"]
-                cuit = transfer["cuit"]
-                name = transfer["name"]
-            except KeyError as exc:
+                parsed = DistributionTransfer.model_validate(transfer)
+            except ValidationError as exc:
+                errors = exc.errors()
+                detalle = "; ".join(str(error.get("msg", error)) for error in errors)
                 raise PagoTICValidationError(
-                    f"Transferencia inválida: falta la clave {exc.args[0]!r}"
+                    f"Transferencia inválida: {detalle}",
+                    errors=errors,
                 ) from exc
-            details.append(
-                DistributionDetail(
-                    amount=amount,
-                    destination=DistributionDestination(
-                        value=cbu,
-                        cuit=cuit,
-                        name=name,
-                    ),
-                )
-            )
+            details.append(parsed.to_detail())
         return cls(details=details)
 
 
@@ -122,9 +150,7 @@ class PaymentRequest(PagoTICModel):
         if self.distribution is None:
             return self
         payment_total = sum((detail.amount for detail in self.details), Decimal("0"))
-        distribution_total = sum(
-            (detail.amount for detail in self.distribution.details), Decimal("0")
-        )
+        distribution_total = self.distribution.total
         if payment_total != distribution_total:
             raise ValueError(
                 "La suma de distribution.details "

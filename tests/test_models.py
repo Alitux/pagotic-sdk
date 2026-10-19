@@ -82,7 +82,7 @@ def test_distribution_requires_destination() -> None:
 
 def test_distribution_model_roundtrip() -> None:
     distribution = Distribution.scheduled(
-        [{"cbu": "0000000000000000000001", "cuit": "20111111111", "name": "A", "amount": 100}]
+        [{"cbu": "0000000000000000000001", "cuit": "20111111112", "name": "A", "amount": 100}]
     )
 
     restored = Distribution.model_validate(distribution.model_dump(mode="json"))

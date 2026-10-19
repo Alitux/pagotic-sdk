@@ -35,6 +35,7 @@ from pagotic.models import (
     Distribution,
     DistributionDestination,
     DistributionDetail,
+    DistributionTransfer,
     FeeDetail,
     Filter,
     Gateway,
@@ -72,6 +73,7 @@ from pagotic.utils import (
     format_filter_datetime,
     format_import_datetime,
 )
+from pagotic.validators import Cuit, normalize_cuit
 from pagotic.webhooks import parse_notification
 
 __all__ = [
@@ -80,11 +82,13 @@ __all__ = [
     "AsyncPagoTIC",
     "Carrier",
     "CollectorDetail",
+    "Cuit",
     "DestinationType",
     "Detail",
     "Distribution",
     "DistributionDestination",
     "DistributionDetail",
+    "DistributionTransfer",
     "DistributionType",
     "FeeDetail",
     "FeePayer",
@@ -138,6 +142,7 @@ __all__ = [
     "build_qr_image_url",
     "format_filter_datetime",
     "format_import_datetime",
+    "normalize_cuit",
     "parse_notification",
     "render_qr_png",
     "render_qr_svg",

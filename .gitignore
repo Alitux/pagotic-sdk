@@ -17,6 +17,7 @@ __pycache__/
 # Distribución / build
 build/
 dist/
+site/
 sdist/
 wheels/
 *.egg-info/

@@ -7,6 +7,21 @@ y el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Added
+
+- Modelo `DistributionTransfer` para describir cada destinatario de una
+  distribución programada con `type`, `cuit`, `cbu`, `name` y `amount`.
+- Validación y normalización de CUIT (11 dígitos y dígito verificador módulo 11)
+  en las distribuciones.
+- Validación de importes positivos y propiedad `Distribution.total`.
+- Documentación completa con MkDocs Material publicada en GitHub Pages.
+- Workflow `docs` para construir y desplegar la documentación.
+
+### Changed
+
+- El README documenta la distribución con `DistributionTransfer`, la validación
+  de CUIT y el enlace a la documentación.
+
 ## [0.1.1] - 2026-10-19
 
 ### Changed
