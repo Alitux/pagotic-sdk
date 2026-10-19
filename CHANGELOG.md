@@ -7,33 +7,11 @@ y el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
-### Added
-
-- Enum `MediaPayment` con todos los `media_payment_id` documentados y helpers
-  `credit_cards()`, `debit_cards()`, `cards()` y `coupons()`.
-- Campo tipado `PaymentMethodInfo.raw_qr` y propiedad `Payment.raw_qr` para
-  obtener el código QR del pago.
-- Helper `build_qr_image_url` y constante `QR_IMAGE_ENDPOINT` para generar la
-  imagen del QR.
-- Ejemplo `examples/qr_payment.py` y sección de medios de pago/QR en el README.
-- Generación local de QR con `segno` (extra `pagotic-sdk[qr]`):
-  `render_qr_png`, `render_qr_svg` y `save_qr`.
-- Workflow de GitHub Actions `publish` que construye el paquete y lo publica en
-  PyPI con Trusted Publishing al crear un release, con publicación manual
-  opcional a TestPyPI.
+## [0.1.1] - 2026-10-19
 
 ### Changed
 
 - El README documenta la instalación desde PyPI con `pip`, `pipx` y Poetry.
-
-### Fixed
-
-- `Payment.validation` y `Payment.review` aceptan los booleanos que devuelve la
-  API en pagos pendientes, además de strings.
-- Las credenciales y URLs se normalizan quitando espacios al inicio y al final;
-  un valor con solo espacios se considera ausente.
-- Los ejemplos y tests de integración cargan `.env` con `override=True` para que
-  variables del sistema como `USERNAME` no pisen las credenciales del archivo.
 
 ## [0.1.0] - 2026-10-19
 
@@ -63,3 +41,24 @@ y el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 - Ejemplos de uso sincrónico, asincrónico, cupones, distribución y webhook.
 - README en español, licencia GPL-3.0-or-later y política de secretos con
   `.env` ignorado.
+- Enum `MediaPayment` con todos los `media_payment_id` documentados y helpers
+  `credit_cards()`, `debit_cards()`, `cards()` y `coupons()`.
+- Campo tipado `PaymentMethodInfo.raw_qr` y propiedad `Payment.raw_qr` para
+  obtener el código QR del pago.
+- Helper `build_qr_image_url` y constante `QR_IMAGE_ENDPOINT` para generar la
+  imagen del QR.
+- Ejemplo `examples/qr_payment.py` y sección de medios de pago/QR en el README.
+- Generación local de QR con `segno` (extra `pagotic-sdk[qr]`):
+  `render_qr_png`, `render_qr_svg` y `save_qr`.
+- Workflow de GitHub Actions `publish` que construye el paquete y lo publica en
+  PyPI con Trusted Publishing al crear un release, con publicación manual
+  opcional a TestPyPI.
+
+### Fixed
+
+- `Payment.validation` y `Payment.review` aceptan los booleanos que devuelve la
+  API en pagos pendientes, además de strings.
+- Las credenciales y URLs se normalizan quitando espacios al inicio y al final;
+  un valor con solo espacios se considera ausente.
+- Los ejemplos y tests de integración cargan `.env` con `override=True` para que
+  variables del sistema como `USERNAME` no pisen las credenciales del archivo.

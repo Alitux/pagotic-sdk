@@ -1,6 +1,6 @@
 [project]
 name = "pagotic-sdk"
-version = "0.1.0"
+version = "0.1.1"
 description = "SDK Python no oficial para la pasarela de pagos PagoTIC"
 authors = [{ name = "Alitux", email = "alitux@disroot.org" }]
 maintainers = [{ name = "Alitux", email = "alitux@disroot.org" }]
