@@ -1,0 +1,57 @@
+# Entorno y secretos
+.env
+.env.*
+!.env.example
+
+# Virtualenvs
+.venv/
+venv/
+
+# Bytecode y cachés
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Distribución / build
+build/
+dist/
+sdist/
+wheels/
+*.egg-info/
+*.egg
+.eggs/
+
+# Tests y cobertura
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+
+# Herramientas
+.mypy_cache/
+.dmypy.json
+.ruff_cache/
+.cache/
+.hypothesis/
+
+# IDEs y editores
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log

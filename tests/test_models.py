@@ -1,0 +1,90 @@
+"""Tests de modelos y serialización."""
+
+from __future__ import annotations
+
+from decimal import Decimal
+
+import pytest
+from pydantic import ValidationError
+
+from pagotic import (
+    Detail,
+    Distribution,
+    DistributionDetail,
+    PagoTICValidationError,
+    Payer,
+    Payment,
+    PaymentRequest,
+    validate_model,
+)
+from tests.conftest import PAYMENT_REQUEST
+
+
+def test_amount_serializes_as_json_number() -> None:
+    detail = Detail(amount=Decimal("10.10"))
+
+    payload = detail.model_dump(mode="json")
+
+    assert payload["amount"] == 10.1
+    assert isinstance(payload["amount"], float)
+
+
+def test_amount_accepts_string_and_keeps_precision() -> None:
+    detail = Detail(amount="0.1")
+
+    assert detail.amount == Decimal("0.1")
+
+
+def test_extra_fields_are_preserved() -> None:
+    payment = Payment.model_validate({"id": "pay-1", "campo_nuevo": "valor"})
+
+    assert payment.model_extra == {"campo_nuevo": "valor"}
+
+
+def test_enums_serialize_to_values() -> None:
+    request = PaymentRequest.model_validate({**PAYMENT_REQUEST, "type": "coupon"})
+
+    assert request.model_dump(mode="json")["type"] == "coupon"
+
+
+def test_payer_requires_name() -> None:
+    with pytest.raises(ValidationError):
+        Payer.model_validate({"email": "ana@example.com"})
+
+
+def test_validate_model_wraps_errors() -> None:
+    with pytest.raises(PagoTICValidationError) as exc_info:
+        validate_model(Payment, {})
+
+    assert exc_info.value.errors
+
+
+def test_payment_request_requires_details() -> None:
+    with pytest.raises(ValidationError):
+        PaymentRequest.model_validate(
+            {
+                "external_transaction_id": "ext-1",
+                "details": [],
+                "payer": {"name": "Ana"},
+            }
+        )
+
+
+def test_distribution_requires_destination() -> None:
+    with pytest.raises(ValidationError):
+        DistributionDetail.model_validate(
+            {
+                "type": "scheduled",
+                "amount": 100,
+            }
+        )
+
+
+def test_distribution_model_roundtrip() -> None:
+    distribution = Distribution.scheduled(
+        [{"cbu": "0000000000000000000001", "cuit": "20111111111", "name": "A", "amount": 100}]
+    )
+
+    restored = Distribution.model_validate(distribution.model_dump(mode="json"))
+
+    assert restored == distribution
