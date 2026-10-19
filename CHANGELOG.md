@@ -22,6 +22,10 @@ y el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
   PyPI con Trusted Publishing al crear un release, con publicación manual
   opcional a TestPyPI.
 
+### Changed
+
+- El README documenta la instalación desde PyPI con `pip`, `pipx` y Poetry.
+
 ### Fixed
 
 - `Payment.validation` y `Payment.review` aceptan los booleanos que devuelve la

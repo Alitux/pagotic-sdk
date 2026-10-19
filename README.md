@@ -16,24 +16,34 @@ masiva, suscripciones y utilidades para webhooks.
 
 ## Instalación
 
-El paquete se distribuye desde el repositorio:
-
 ```bash
-git clone https://github.com/Alitux/pagotic-sdk.git
-cd pagotic-sdk
-poetry install
+pip install pagotic-sdk
 ```
 
-Para usarlo como dependencia en otro proyecto:
+Con [`pipx`](https://pipx.pypa.io/) para instalarlo aislado:
 
 ```bash
-pip install "pagotic-sdk @ git+https://github.com/Alitux/pagotic-sdk.git"
+pipx install pagotic-sdk
 ```
 
 Para generar códigos QR localmente (sin servicios externos) agregá el extra `qr`:
 
 ```bash
-pip install "pagotic-sdk[qr] @ git+https://github.com/Alitux/pagotic-sdk.git"
+pip install "pagotic-sdk[qr]"
+pipx install "pagotic-sdk[qr]"   # alternativa con pipx
+```
+
+Con Poetry:
+
+```bash
+poetry add pagotic-sdk
+poetry add "pagotic-sdk[qr]"  # opcional, para QR local
+```
+
+También podés instalarlo desde el repositorio:
+
+```bash
+pip install "pagotic-sdk @ git+https://github.com/Alitux/pagotic-sdk.git"
 ```
 
 ## Inicio rápido
@@ -212,7 +222,7 @@ El QR se genera localmente con [`segno`](https://github.com/heuer/segno) (Python
 puro, sin Pillow ni servicios externos). Para eso instalá el extra:
 
 ```bash
-pip install "pagotic-sdk[qr] @ git+https://github.com/Alitux/pagotic-sdk.git"
+pip install "pagotic-sdk[qr]"
 ```
 
 También están `render_qr_png` y `render_qr_svg` para obtener los bytes o el SVG
