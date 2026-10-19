@@ -90,6 +90,33 @@ def test_distribution_model_roundtrip() -> None:
     assert restored == distribution
 
 
+def test_payment_accepts_boolean_validation_and_review() -> None:
+    payment = Payment.model_validate(
+        {
+            "id": "pay-1",
+            "status": "pending",
+            "validation": False,
+            "review": False,
+        }
+    )
+
+    assert payment.validation is False
+    assert payment.review is False
+
+
+def test_payment_accepts_string_validation_and_review() -> None:
+    payment = Payment.model_validate(
+        {
+            "id": "pay-1",
+            "validation": "required",
+            "review": "requested",
+        }
+    )
+
+    assert payment.validation == "required"
+    assert payment.review == "requested"
+
+
 def test_payment_raw_qr_from_payment_methods() -> None:
     payment = Payment.model_validate(
         {

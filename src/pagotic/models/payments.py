@@ -149,8 +149,8 @@ class Payment(PagoTICModel):
     final_amount: Amount | None = None
     status: PaymentStatus | str | None = None
     status_detail: str | None = None
-    validation: str | None = None
-    review: str | None = None
+    validation: bool | str | None = None
+    review: bool | str | None = None
     upgradeable: bool | None = None
     request_date: str | None = None
     due_date: str | None = None

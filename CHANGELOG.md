@@ -21,6 +21,8 @@ y el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ### Fixed
 
+- `Payment.validation` y `Payment.review` aceptan los booleanos que devuelve la
+  API en pagos pendientes, además de strings.
 - Las credenciales y URLs se normalizan quitando espacios al inicio y al final;
   un valor con solo espacios se considera ausente.
 - Los ejemplos y tests de integración cargan `.env` con `override=True` para que
