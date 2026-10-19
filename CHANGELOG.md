@@ -18,6 +18,9 @@ y el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 - Ejemplo `examples/qr_payment.py` y sección de medios de pago/QR en el README.
 - Generación local de QR con `segno` (extra `pagotic-sdk[qr]`):
   `render_qr_png`, `render_qr_svg` y `save_qr`.
+- Workflow de GitHub Actions `publish` que construye el paquete y lo publica en
+  PyPI con Trusted Publishing al crear un release, con publicación manual
+  opcional a TestPyPI.
 
 ### Fixed
 
