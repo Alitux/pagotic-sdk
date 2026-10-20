@@ -22,6 +22,7 @@ from pagotic.resources.subscriptions import (
     SubscriptionsResource,
 )
 from pagotic.settings import Settings, resolve_settings
+from pagotic.utils import collector_id_from_token
 
 _RETRYABLE_STATUS = frozenset({429, 500, 502, 503, 504})
 
@@ -130,6 +131,22 @@ class PagoTIC:
     def settings(self) -> Settings:
         """Configuración efectiva del cliente."""
         return self._settings
+
+    def get_collector_id(self) -> str:
+        """Devuelve el ``collector_id`` del token de acceso.
+
+        PagoTIC incluye el identificador del comercio en el claim
+        ``signature`` (o ``family_name``) del JWT. No confundir con ``sub``
+        ni con el ``client_id``.
+
+        Returns:
+            El identificador del comercio asociado al usuario.
+
+        Raises:
+            PagoTICAuthError: Si falla la autenticación.
+            PagoTICValidationError: Si el token no contiene el claim esperado.
+        """
+        return collector_id_from_token(self._auth.get_token())
 
     def request(
         self,
@@ -255,6 +272,22 @@ class AsyncPagoTIC:
     def settings(self) -> Settings:
         """Configuración efectiva del cliente."""
         return self._settings
+
+    async def get_collector_id(self) -> str:
+        """Devuelve el ``collector_id`` del token de acceso.
+
+        PagoTIC incluye el identificador del comercio en el claim
+        ``signature`` (o ``family_name``) del JWT. No confundir con ``sub``
+        ni con el ``client_id``.
+
+        Returns:
+            El identificador del comercio asociado al usuario.
+
+        Raises:
+            PagoTICAuthError: Si falla la autenticación.
+            PagoTICValidationError: Si el token no contiene el claim esperado.
+        """
+        return collector_id_from_token(await self._auth.get_token())
 
     async def request(
         self,

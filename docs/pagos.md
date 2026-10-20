@@ -23,6 +23,12 @@ principales:
 | `metadata` | `dict` | No | Datos libres. |
 | `distribution` | `Distribution` | No | Distribución programada. |
 
+!!! warning "`concept_id` obligatorio en la práctica"
+    Aunque la documentación no lo marque siempre como obligatorio, la API
+    espera `concept_id` en cada elemento de `details`. Envialo siempre para
+    evitar rechazos y poder conciliar los pagos. `concept_description` es
+    opcional, pero recomendable.
+
 Si omitís `type` y `payment_methods`, se crea un pago pendiente y la respuesta
 incluye `form_url` para que el pagador complete el checkout.
 

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import base64
+import json
 from datetime import date, datetime, timedelta, timezone
 
 import pytest
@@ -9,6 +11,8 @@ import pytest
 from pagotic import (
     PagoTICValidationError,
     build_qr_image_url,
+    collector_id_from_token,
+    decode_jwt_payload,
     format_filter_datetime,
     format_import_datetime,
 )
@@ -64,3 +68,56 @@ def test_build_qr_image_url_rejects_empty_value() -> None:
 def test_build_qr_image_url_rejects_invalid_size() -> None:
     with pytest.raises(PagoTICValidationError):
         build_qr_image_url("abc", size=0)
+
+
+def _make_jwt(payload: dict[str, object]) -> str:
+    def encode(value: dict[str, object]) -> str:
+        raw = json.dumps(value).encode()
+        return base64.urlsafe_b64encode(raw).rstrip(b"=").decode()
+
+    return f"{encode({'alg': 'none'})}.{encode(payload)}.firma"
+
+
+def test_decode_jwt_payload_returns_claims() -> None:
+    token = _make_jwt({"signature": "14020", "sub": "uuid"})
+
+    payload = decode_jwt_payload(token)
+
+    assert payload["signature"] == "14020"
+    assert payload["sub"] == "uuid"
+
+
+def test_collector_id_from_token_uses_signature() -> None:
+    token = _make_jwt({"signature": "14020", "family_name": "otro"})
+
+    assert collector_id_from_token(token) == "14020"
+
+
+def test_collector_id_from_token_falls_back_to_family_name() -> None:
+    token = _make_jwt({"family_name": "14020"})
+
+    assert collector_id_from_token(token) == "14020"
+
+
+def test_collector_id_from_token_rejects_missing_claim() -> None:
+    token = _make_jwt({"sub": "uuid"})
+
+    with pytest.raises(PagoTICValidationError):
+        collector_id_from_token(token)
+
+
+def test_decode_jwt_payload_rejects_empty_token() -> None:
+    with pytest.raises(PagoTICValidationError):
+        decode_jwt_payload("")
+
+
+def test_decode_jwt_payload_rejects_malformed_token() -> None:
+    with pytest.raises(PagoTICValidationError):
+        decode_jwt_payload("no-es-un-jwt")
+
+
+def test_decode_jwt_payload_rejects_non_object_payload() -> None:
+    token = f"header.{base64.urlsafe_b64encode(b'[1, 2]').rstrip(b'=').decode()}.firma"
+
+    with pytest.raises(PagoTICValidationError):
+        decode_jwt_payload(token)

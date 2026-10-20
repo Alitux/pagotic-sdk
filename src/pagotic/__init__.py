@@ -70,6 +70,8 @@ from pagotic.qr import render_qr_png, render_qr_svg, save_qr
 from pagotic.utils import (
     QR_IMAGE_ENDPOINT,
     build_qr_image_url,
+    collector_id_from_token,
+    decode_jwt_payload,
     format_filter_datetime,
     format_import_datetime,
 )
@@ -140,6 +142,8 @@ __all__ = [
     "SubscriptionSearchRequest",
     "__version__",
     "build_qr_image_url",
+    "collector_id_from_token",
+    "decode_jwt_payload",
     "format_filter_datetime",
     "format_import_datetime",
     "normalize_cuit",

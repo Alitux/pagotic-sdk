@@ -200,6 +200,14 @@ Esta sección se genera automáticamente a partir de los docstrings del paquete.
     options:
       show_source: false
 
+::: pagotic.utils.decode_jwt_payload
+    options:
+      show_source: false
+
+::: pagotic.utils.collector_id_from_token
+    options:
+      show_source: false
+
 ::: pagotic.qr.render_qr_png
     options:
       show_source: false

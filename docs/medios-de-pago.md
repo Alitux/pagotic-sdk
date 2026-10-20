@@ -97,10 +97,15 @@ with PagoTIC() as sdk:
 Al usar `presets` conviene omitir `type` y `payment_methods`: el pago queda
 pendiente y el checkout muestra solo los medios indicados.
 
-!!! warning "Disponibilidad"
-    Los medios deben estar habilitados para el comercio. Si un ID no está
+!!! warning "Medios habilitados para el comercio"
+    Los IDs de `presets.media_payment_ids` deben estar habilitados para el
+    comercio (collector) con el que se crea el pago. Si un medio no está
     habilitado, el checkout puede no mostrarlo o la API puede rechazar la
-    operación.
+    operación. Verificá la configuración del comercio antes de publicar.
+
+    Además, el `collector_id` debe ser el correcto. Podés descubrirlo desde el
+    token con `sdk.get_collector_id()` (ver
+    [Configuración](configuracion.md#descubrir-el-collector_id)).
 
 ## Pago directo con tarjeta
 

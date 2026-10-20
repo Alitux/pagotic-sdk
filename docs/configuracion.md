@@ -26,6 +26,49 @@ sdk = PagoTIC(
 Las credenciales y las URLs se normalizan quitando espacios al inicio y al
 final. Un valor compuesto solo por espacios se considera ausente.
 
+## Descubrir el collector_id
+
+PagoTIC incluye el identificador del comercio en los claims `signature` y
+`family_name` del `access_token`. El SDK puede leerlo por vos:
+
+```python
+from pagotic import PagoTIC
+
+with PagoTIC() as sdk:
+    collector_id = sdk.get_collector_id()
+    print(collector_id)  # por ejemplo: 14020
+```
+
+En el cliente asincrónico:
+
+```python
+collector_id = await sdk.get_collector_id()
+```
+
+El método dispara la autenticación si todavía no hay token. Los claims `sub` y
+el `client_id` **no** son el `collector_id`.
+
+Para validarlo de forma read-only contra la API, listá un pago filtrando por
+ese identificador:
+
+```python
+from pagotic import Filter, FilterOperation
+
+page = sdk.payments.list(
+    page=1,
+    limit=1,
+    filters=[Filter("collector_id", FilterOperation.EQUAL, collector_id)],
+)
+```
+
+Si el `collector_id` no corresponde al usuario, la API responde
+`400 Unrelated collector` (`extended_code=4201`).
+
+!!! note "Sin verificación de firma"
+    `collector_id_from_token()` y `decode_jwt_payload()` decodifican el JWT
+    localmente sin verificar su firma. Usalos para descubrir configuración, no
+    como mecanismo de seguridad. La validación definitiva la hace la API.
+
 ## Variables de entorno
 
 Si no pasás los parámetros al constructor, se leen del entorno:

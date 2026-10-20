@@ -122,9 +122,73 @@ con `refresh_token` y, ante un `401`, se reintenta una vez. Los reintentos por
 red o `5xx`/`429` solo aplican a métodos idempotentes (`GET`/`HEAD`), nunca a la
 creación de pagos.
 
+### Descubrir el collector_id
+
+El `collector_id` viene en el JWT que devuelve Keycloak, en el claim
+`signature` (y también en `family_name`). No es el `sub` ni el `client_id`.
+
+```python
+with PagoTIC() as sdk:
+    collector_id = sdk.get_collector_id()
+    print(collector_id)
+```
+
+En async:
+
+```python
+collector_id = await sdk.get_collector_id()
+```
+
+Para confirmarlo, consultá pagos filtrando por ese collector:
+
+```python
+from pagotic import Filter, FilterOperation
+
+page = sdk.payments.list(
+    page=1,
+    limit=1,
+    filters=[Filter("collector_id", FilterOperation.EQUAL, collector_id)],
+)
+```
+
+`get_collector_id()` decodifica el token sin verificar la firma; sirve para
+descubrir el identificador, no como mecanismo de seguridad.
+
+### Alcance para partners
+
+Con las credenciales de una entidad operás sobre **tu propio comercio**. El
+`collector_id` se obtiene del JWT y es la clave para filtrar tus pagos,
+importaciones y suscripciones:
+
+```python
+with PagoTIC() as sdk:
+    collector_id = sdk.get_collector_id()
+    print(collector_id)  # "14020"
+```
+
+No uses `sub` ni `client_id`: no son el `collector_id`. Las operaciones de
+Marca Blanca (listar otros comercios, crear subcuentas, configurar medios de
+pago o activar entidades) requieren un token de backoffice y **no están
+disponibles para partners**.
+
+| Capacidad | Partner |
+|---|---|
+| Pagos, devoluciones, agrupaciones y cupones | Sí |
+| Importaciones y suscripciones | Sí |
+| Webhooks | Sí |
+| Descubrir el `collector_id` | Sí |
+| Listar otros comercios o crear subcuentas | No |
+| Configurar medios de pago o activar entidades | No |
+
+Más detalles en la [guía de partners](https://alitux.github.io/pagotic-sdk/partners/).
+
 ## Pagos
 
 ### Crear, obtener y cancelar
+
+> **`concept_id` obligatorio en la práctica.** Aunque la documentación no
+> siempre lo marque como obligatorio, la API espera `concept_id` en cada
+> detalle. Envialo siempre para evitar rechazos y poder conciliar los pagos.
 
 ```python
 payment = sdk.payments.create({...})
@@ -198,7 +262,12 @@ payment = sdk.payments.create(
 print(payment.form_url)  # checkout filtrado a esos medios
 ```
 
-`presets` solo filtra las opciones del checkout: no cobra en el momento. Para
+`presets` solo filtra las opciones del checkout: no cobra en el momento.
+
+> **Medios habilitados para el comercio.** Los IDs de
+> `presets.media_payment_ids` deben estar habilitados para el collector. Si un
+> medio no está habilitado, el checkout puede no mostrarlo o la API puede
+> rechazar la operación. Para
 habilitar el QR interoperable usá `MediaPayment.QR` (85). También podés agrupar
 por tipo: `MediaPayment.credit_cards()`, `MediaPayment.debit_cards()`,
 `MediaPayment.cards()` y `MediaPayment.coupons()`.

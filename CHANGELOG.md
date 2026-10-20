@@ -9,6 +9,12 @@ y el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ### Added
 
+- `PagoTIC.get_collector_id()` y `AsyncPagoTIC.get_collector_id()` para
+  descubrir el `collector_id` desde el token de acceso.
+- Helpers `decode_jwt_payload` y `collector_id_from_token` para inspeccionar los
+  claims del JWT sin verificar la firma.
+- Guía "Alcance para partners" con las capacidades y limitaciones de las
+  credenciales de entidad.
 - Modelo `DistributionTransfer` para describir cada destinatario de una
   distribución programada con `type`, `cuit`, `cbu`, `name` y `amount`.
 - Validación y normalización de CUIT (11 dígitos y dígito verificador módulo 11)
@@ -19,6 +25,8 @@ y el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ### Changed
 
+- El README y la documentación describen el alcance de partner, el `concept_id`
+  obligatorio en la práctica y la necesidad de medios de pago habilitados.
 - El README documenta la distribución con `DistributionTransfer`, la validación
   de CUIT y el enlace a la documentación.
 
