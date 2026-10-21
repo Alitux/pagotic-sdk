@@ -7,6 +7,8 @@ y el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-10-21
+
 ### Added
 
 - `PagoTIC.get_collector_id()` y `AsyncPagoTIC.get_collector_id()` para
